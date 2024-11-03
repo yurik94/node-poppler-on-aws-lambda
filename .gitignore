@@ -1,0 +1,5 @@
+bin
+samconfig.toml
+.aws-sam
+*/**/*.zip
+.DS_Store

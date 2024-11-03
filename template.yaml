@@ -1,0 +1,68 @@
+Transform: AWS::Serverless-2016-10-31
+Resources:
+  PopplerApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub
+        - ${ResourceName} From Stack ${AWS::StackName}
+        - ResourceName: PopplerApi
+      StageName: Prod
+      DefinitionBody:
+        openapi: '3.0'
+        info: {}
+        paths:
+          /:
+            post:
+              x-amazon-apigateway-integration:
+                httpMethod: POST
+                type: aws_proxy
+                uri: !Sub arn:${AWS::Partition}:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PopplerFunction.Arn}/invocations
+              responses: {}
+      EndpointConfiguration: REGIONAL
+      TracingEnabled: true
+      Cors:
+        MaxAge: 5
+
+  PopplerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: !Sub
+        - Stack ${AWS::StackName} Function ${ResourceName}
+        - ResourceName: PopplerFunction
+      CodeUri: src/Function
+      Handler: index.handler
+      Runtime: nodejs20.x
+      MemorySize: 3008
+      Timeout: 30
+      Tracing: Active
+      Layers:
+        - !Ref PopplerLayer
+      Events:
+        PopplerApiPOST:
+          Type: Api
+          Properties:
+            Path: /
+            Method: POST
+            RestApiId: !Ref PopplerApi
+      Architectures:
+        - arm64
+      Environment:
+        Variables:
+          FONTCONFIG_PATH: /opt/etc/fonts
+
+  PopplerFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    DeletionPolicy: Retain
+    Properties:
+      LogGroupName: !Sub /aws/lambda/${PopplerFunction}
+
+  PopplerLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: poppler
+      ContentUri: layers/poppler/release-arm64.zip
+
+Outputs:
+  ApiUrl:
+    Description: URL of the Poppler API
+    Value: !Sub https://${PopplerApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/
