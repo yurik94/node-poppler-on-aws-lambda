@@ -43,6 +43,11 @@ sam deploy --guided
 ### Testing the Lambda Function
 To test, send a POST request to the API endpoint with a base64-encoded PDF. The function returns the first page of the PDF as a base64-encoded PNG image.
 
+```bash
+curl -s -X POST "YOUR_ENDPOINT_HERE" \
+  -H "Content-Type: application/json" \
+  -d "{\"data\":\"$(base64 < sample.pdf | tr -d '\n')\"}" \
+  | sed -n 's/
 
 ## Conclusion
 This setup allows PDF-to-image conversion in a serverless environment, making it scalable and reusable for document processing tasks.
