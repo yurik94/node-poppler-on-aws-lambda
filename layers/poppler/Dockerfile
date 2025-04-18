@@ -1,5 +1,5 @@
-# Use Amazon Linux 2 as the base image
-FROM amazonlinux:2
+# Use Amazon Linux 2023 as the base image
+FROM amazonlinux:2023
 
 # Define build argument and environment variable
 ARG TARGET_PLATFORM
@@ -9,27 +9,26 @@ ENV TARGET_PLATFORM=${TARGET_PLATFORM}
 ENV PACKAGE_DIR=/package
 
 # Install necessary packages, including Poppler utilities, data, and fonts
-RUN yum -y update \
-    && yum -y install \
-       openjpeg-devel \
+RUN dnf update -y \
+    && dnf install -y \
+       openjpeg2-devel \
        libjpeg-devel \
        fontconfig-devel \
        libtiff-devel \
        libpng-devel \
        gcc \
        gcc-c++ \
-       epel-release \
        zip \
        poppler-utils \
        poppler-data \
-       freetype \
+       freetype-devel \
        fontconfig \
        dejavu-sans-fonts \
        liberation-fonts \
-    && yum clean all
+    && dnf clean all
 
 # Create the package directory structure
-RUN mkdir -p ${PACKAGE_DIR}/bin ${PACKAGE_DIR}/lib ${PACKAGE_DIR}/share/poppler ${PACKAGE_DIR}/fonts
+RUN mkdir -p ${PACKAGE_DIR}/bin ${PACKAGE_DIR}/lib ${PACKAGE_DIR}/share/poppler ${PACKAGE_DIR}/fonts ${PACKAGE_DIR}/etc/fonts
 
 # Copy Poppler utilities (pdftocairo) into the package/bin directory
 RUN cp /usr/bin/pdftocairo ${PACKAGE_DIR}/bin
